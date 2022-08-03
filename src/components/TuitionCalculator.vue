@@ -266,7 +266,7 @@ export default {
                 Prior&nbsp;coursework and life experiences can translate into
                 college credit, saving time and money. Estimate quarter credits
                 you earned from a prior college or university.&nbsp;1 semester
-                credit hour = 1.5 quarter credit hours
+                credit hour = 1.5 quarter credit hours.
               </p>
 
               <p>Transfer Credits</p>
