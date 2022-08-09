@@ -3,11 +3,22 @@ export default {
   name: "TuitionCalculator",
 
   data: () => ({
-    slider: 0,
     progress: 0,
     e1: 1,
+    estimatedTuition: "$0",
+    estimatedGradDate: "TBD",
+    fees: 10000,
     previousIndex: null,
-    userChoices: ["", "", "", ""],
+    userChoices: {
+      stepOne: ["", "", "", ""],
+      stepTwo: {
+        option: null,
+        rate: null,
+      },
+      stepThree: {
+        slider: 0,
+      },
+    },
     stepOneFields: {
       campuses: {
         options: ["California", "Texas", "Florida"],
@@ -87,6 +98,12 @@ export default {
         },
       },
     },
+    stepTwoFields: {
+      tuition: {
+        options: ["Standard Rate", "Active Duty", "Veteran"],
+        rates: [460, 391, 250],
+      },
+    },
   }),
   methods: {
     setFields(nextField, options) {
@@ -99,7 +116,7 @@ export default {
       console.log(index, this.previousIndex);
       let clearIndex = index + 1;
       while (clearIndex < 4) {
-        this.userChoices[clearIndex] = "";
+        this.userChoices.stepOne[clearIndex] = "";
         clearIndex++;
       }
     },
@@ -115,18 +132,37 @@ export default {
       }
       let options;
       if (index == 0) {
-        options = this.wcuData[this.userChoices[0]];
+        options = this.wcuData[this.userChoices.stepOne[0]];
       } else if (index == 1) {
-        options = this.wcuData[this.userChoices[0]][this.userChoices[1]];
+        options =
+          this.wcuData[this.userChoices.stepOne[0]][
+            this.userChoices.stepOne[1]
+          ];
       } else if (index == 2) {
         options =
-          this.wcuData[this.userChoices[0]][this.userChoices[1]][
-            this.userChoices[2]
-          ];
+          this.wcuData[this.userChoices.stepOne[0]][
+            this.userChoices.stepOne[1]
+          ][this.userChoices.stepOne[2]];
       }
       console.log(options);
       this.setFields(nextField, options);
       this.previousIndex = index;
+    },
+    setTuitionRate() {
+      this.userChoices.stepTwo.rate =
+        this.stepTwoFields.tuition.rates[
+          this.stepTwoFields.tuition.options.indexOf(
+            this.userChoices.stepTwo.option
+          )
+        ];
+    },
+    calculateTuition() {
+      let cost =
+        this.userChoices.stepTwo.rate * 120 
+        - this.userChoices.stepThree.slider * this.userChoices.stepTwo.rate
+        + this.fees; 
+      console.log(cost)
+      this.estimatedTuition = `$${cost}`
     },
   },
 };
@@ -137,7 +173,7 @@ export default {
     <v-row no-gutters>
       <v-col cols="12" sm="6" md="8">
         <v-stepper v-model="e1" elevation="0">
-          <v-progress-linear v-model="progress" color="blue" height="25">
+          <v-progress-linear v-model="progress" color="secondary" height="25">
             <template v-slot:default="{ value }">
               <strong>{{ Math.ceil(value) }}%</strong>
             </template>
@@ -152,7 +188,7 @@ export default {
                 label="Choose a WCU Campus"
                 :items="stepOneFields.campuses.options"
                 @change="handleSelection('campus', 'areaOfStudy', 0)"
-                v-model="userChoices[0]"
+                v-model="userChoices.stepOne[0]"
               ></v-select>
               <v-select
                 outlined
@@ -160,7 +196,7 @@ export default {
                 :disabled="stepOneFields.areaOfStudy.disabled"
                 :items="stepOneFields.areaOfStudy.options"
                 @change="handleSelection('areaOfStudy', 'degreeLevel', 1)"
-                v-model="userChoices[1]"
+                v-model="userChoices.stepOne[1]"
               ></v-select>
               <v-select
                 outlined
@@ -168,14 +204,14 @@ export default {
                 :disabled="stepOneFields.degreeLevel.disabled"
                 :items="stepOneFields.degreeLevel.options"
                 @change="handleSelection('degreeLevel', 'program', 2)"
-                v-model="userChoices[2]"
+                v-model="userChoices.stepOne[2]"
               ></v-select>
               <v-select
                 outlined
                 label="Choose Program"
                 :disabled="stepOneFields.program.disabled"
                 :items="stepOneFields.program.options"
-                v-model="userChoices[3]"
+                v-model="userChoices.stepOne[3]"
               ></v-select>
 
               <div class="nav-btn-container d-flex align-center justify-end">
@@ -196,7 +232,13 @@ export default {
                 ways to save on tuition.
               </p>
 
-              <v-select outlined label="Choose a Tuition Rate"></v-select>
+              <v-select
+                :items="stepTwoFields.tuition.options"
+                v-model="userChoices.stepTwo.option"
+                @change="setTuitionRate()"
+                outlined
+                label="Choose a Tuition Rate"
+              ></v-select>
 
               <div
                 class="nav-btn-container d-flex align-center justify-space-between"
@@ -215,9 +257,8 @@ export default {
               <p>Select Your Preferred Schedule</p>
 
               <p>
-                Purdue Global offers monthly start dates, so you can begin
-                classes when it’s most convenient for you. Select&nbsp;one
-                below.
+                WCU offers monthly start dates, so you can begin classes when
+                it’s most convenient for you. Select&nbsp;one below.
               </p>
 
               <p>Expected Start Date</p>
@@ -272,22 +313,13 @@ export default {
               <p>Transfer Credits</p>
 
               <v-slider
-                v-model="slider"
-                class="align-center"
+                v-model="userChoices.stepThree.slider"
+                class="align-center mx-8 mt-16"
                 :max="97"
                 :min="0"
                 hide-details
+                thumb-label="always"
               >
-                <template v-slot:append>
-                  <v-text-field
-                    v-model="slider"
-                    class="mt-0 pt-0"
-                    hide-details
-                    single-line
-                    type="number"
-                    style="width: 60px"
-                  ></v-text-field>
-                </template>
               </v-slider>
 
               <p>
@@ -306,7 +338,10 @@ export default {
                   Previous
                 </v-btn>
 
-                <v-btn color="primary" @click="(e1 = 5), (progress += 25)">
+                <v-btn
+                  color="primary"
+                  @click="(e1 = 5), (progress += 25), calculateTuition()"
+                >
                   Continue
                 </v-btn>
               </div>
@@ -327,19 +362,25 @@ export default {
                 <tbody>
                   <tr>
                     <td class="text-left">Total Quarter Credits</td>
-                    <td class="text-right">180</td>
+                    <td class="text-right">120</td>
                   </tr>
                   <tr>
                     <td class="text-left">Tuition Rate</td>
-                    <td class="text-right">California Residents</td>
+                    <td class="text-right">{{ userChoices.stepTwo.option }} - ${{ userChoices.stepTwo.rate }}/credit</td>
                   </tr>
                   <tr>
                     <td class="text-left">Estimated Transfer Credits</td>
-                    <td class="text-right">0</td>
+                    <td class="text-right">
+                      {{ userChoices.stepThree.slider }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-left">Supplies & Fees</td>
+                    <td class="text-right">${{ fees }}</td>
                   </tr>
                   <tr>
                     <td class="text-left">Estimated Tuition Cost</td>
-                    <td class="text-right">$50,000</td>
+                    <td class="text-right">{{ estimatedTuition }}</td>
                   </tr>
                 </tbody>
               </v-simple-table>
@@ -386,13 +427,13 @@ export default {
         <v-container>
           <v-row>
             <v-col>
-              <p>$30,000</p>
+              <h1>{{ estimatedTuition }}</h1>
               <p>Estimated Tuition</p>
             </v-col>
           </v-row>
           <v-row>
             <v-col>
-              <p>Fall 2026</p>
+              <h1>{{ estimatedGradDate }}</h1>
               <p>Estimated Graduation Date</p>
             </v-col>
           </v-row>
