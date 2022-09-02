@@ -26,10 +26,11 @@ export default class DataModule {
     };
     that.stepData = {
       stepOne: {
+        component: "StepOne",
         valid: false,
         fieldRules: [(v) => !!v || "This field is required"],
         fields: [
-          { 
+          {
             _id: 0,
             reference: "campus",
             label: "Choose a WCU Campus",
@@ -82,6 +83,7 @@ export default class DataModule {
         },
       },
       stepTwo: {
+        component: "StepTwo",
         valid: false,
         fieldRules: [(v) => !!v || "This field is required"],
         tuition: {
@@ -91,6 +93,7 @@ export default class DataModule {
         },
       },
       stepThree: {
+        component: "StepThree",
         valid: false,
         fieldRules: [(v) => !!v || "This field is required"],
         startDate: {
@@ -101,12 +104,16 @@ export default class DataModule {
         },
       },
       stepFour: {
+        component: "StepFour",
         valid: false,
         fieldRules: [(v) => !!v || "This field is required"],
         workExperience: {
           isRequired: true,
           value: "",
         },
+      },
+      stepFive: {
+        component: "StepFive",
       },
     };
     that.wcuProgramData = {
