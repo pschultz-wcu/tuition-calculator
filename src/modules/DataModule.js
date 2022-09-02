@@ -26,7 +26,6 @@ export default class DataModule {
     };
     that.stepData = {
       stepOne: {
-        component: "StepOne",
         valid: false,
         fieldRules: [(v) => !!v || "This field is required"],
         fields: [
@@ -62,28 +61,8 @@ export default class DataModule {
             isRequired: true,
           },
         ],
-        campuses: {
-          options: ["California", "Texas", "Florida"],
-          isRequired: true,
-        },
-        areaOfStudy: {
-          options: null,
-          disabled: true,
-          isRequired: true,
-        },
-        degreeLevel: {
-          options: null,
-          disabled: true,
-          isRequired: true,
-        },
-        program: {
-          options: null,
-          disabled: true,
-          isRequired: true,
-        },
       },
-      stepTwo: {
-        component: "StepTwo",
+      stepTwo: {        
         valid: false,
         fieldRules: [(v) => !!v || "This field is required"],
         tuition: {
@@ -92,8 +71,7 @@ export default class DataModule {
           isRequired: true,
         },
       },
-      stepThree: {
-        component: "StepThree",
+      stepThree: {        
         valid: false,
         fieldRules: [(v) => !!v || "This field is required"],
         startDate: {
@@ -103,17 +81,13 @@ export default class DataModule {
           isRequired: true,
         },
       },
-      stepFour: {
-        component: "StepFour",
+      stepFour: {        
         valid: false,
         fieldRules: [(v) => !!v || "This field is required"],
         workExperience: {
           isRequired: true,
           value: "",
         },
-      },
-      stepFive: {
-        component: "StepFive",
       },
     };
     that.wcuProgramData = {
@@ -178,5 +152,93 @@ export default class DataModule {
         },
       },
     };
+  }
+
+  setStepperComponentsData(that) {
+    that.stepperComponentsData = [
+      {
+        step: 1,
+        name: "StepOne",
+        props: {
+          stepData: that.stepData,
+          userChoices: that.userChoices,
+        },
+        on: {
+          "field-changed": (e) => {
+            console.log(e);
+            that.handleSelection(e);
+          },
+          "next-step": () => {
+            that.nextStep();
+          },
+        },
+      },
+      {
+        step: 2,
+        name: "StepTwo",
+        props: {
+          stepData: that.stepData,
+          userChoices: that.userChoices,
+        },
+        on: {
+          "field-changed": (e) => {
+            console.log(e);
+            that.setTuitionRate();
+          },
+          "previous-step": () => {
+            that.previousStep();
+          },
+          "next-step": () => {
+            that.nextStep();
+          },
+        },
+      },
+      {
+        step: 3,
+        name: "StepThree",
+        props: {
+          stepData: that.stepData,
+          userChoices: that.userChoices,
+        },
+        on: {
+          "previous-step": () => {
+            that.previousStep();
+          },
+          "next-step": () => {
+            that.nextStep();
+          },
+        },
+      },
+      {
+        step: 4,
+        name: "StepFour",
+        props: {
+          stepData: that.stepData,
+          userChoices: that.userChoices,
+        },
+        on: {
+          "previous-step": () => {
+            that.previousStep();
+          },
+          "next-step": () => {
+            that.nextStep();
+          },
+        },
+      },
+      {
+        step: 5,
+        name: "StepFive",
+        props: {
+          userChoices: that.userChoices,
+          stepData: that.stepData,
+          calculatorData: that.calculatorData,
+        },
+        on: {
+          reset: () => {
+            that.resetCalculator();
+          },
+        },
+      },
+    ];
   }
 }

@@ -1,26 +1,35 @@
 <script>
 import Steps from "./steps";
+import Results from "./Results.vue";
+import ProgressBar from "./ProgressBar.vue";
 import DataModule from "../modules/DataModule";
+import CalculationModule from "../modules/CalculationModule";
 import StepOneModule from "../modules/StepOneModule";
 export default {
   name: "TuitionCalculator",
   components: {
     ...Steps,
+    Results,
+    ProgressBar,
   },
-  data: () => ({    
+  data: () => ({
     stepperKey: 0,
+    stepperComponentsData: [],
     calculatorData: {},
     previousIndex: null,
     userChoices: {},
     stepData: {},
-    wcuProgramData: {},    
+    wcuProgramData: {},
     dataModule: null,
+    calculationModule: null,
     stepOneModule: null,
   }),
   created() {
     this.dataModule = new DataModule();
+    this.calculationModule = new CalculationModule();
     this.stepOneModule = new StepOneModule();
     this.setCalculator();
+    this.dataModule.setStepperComponentsData(this);
   },
   methods: {
     setCalculator() {
@@ -38,42 +47,32 @@ export default {
       (this.calculatorData.step += 1), (this.calculatorData.progress += 25);
     },
     setOptions(n, o) {
-      this.stepOneModule.setOptions(this, n, o)
+      this.stepOneModule.setOptions(this, n, o);
     },
     multipleOptions(n, o) {
-      this.stepOneModule.multipleOptions(this, n, o)
+      this.stepOneModule.multipleOptions(this, n, o);
     },
     oneOption(n, o) {
-      this.stepOneModule.oneOption(this, n, o)
+      this.stepOneModule.oneOption(this, n, o);
     },
     setFields(nextField, options) {
-      this.stepOneModule.setFields(this, nextField, options)
+      this.stepOneModule.setFields(this, nextField, options);
     },
     clearSuccessiveFields(index) {
-      this.stepOneModule.clearSuccessiveFields(this, index)
+      this.stepOneModule.clearSuccessiveFields(this, index);
     },
     setStepOneUserChoices(index) {
-      return this.stepOneModule.setStepOneUserChoices(this, index)
+      return this.stepOneModule.setStepOneUserChoices(this, index);
     },
     handleSelection(index) {
-      this.stepOneModule.handleSelection(this, index)
+      console.log(index);
+      this.stepOneModule.handleSelection(this, index);
     },
     setTuitionRate() {
-      this.userChoices.stepTwo.tuition.rate =
-        this.stepData.stepTwo.tuition.rates[
-          this.stepData.stepTwo.tuition.options.indexOf(
-            this.userChoices.stepTwo.tuition.option
-          )
-        ];
+      this.calculationModule.setTuitionRate(this);
     },
     calculateTuition() {
-      let cost =
-        this.userChoices.stepTwo.tuition.rate * 120 -
-        this.userChoices.stepFour.transferCredits *
-          this.userChoices.stepTwo.tuition.rate +
-        this.calculatorData.fees;
-      console.log(cost);
-      this.calculatorData.estimatedTuition = `$${cost}`;
+      this.calculationModule.calculateTuition(this);
     },
   },
 };
@@ -88,85 +87,23 @@ export default {
           elevation="0"
           :key="stepperKey"
         >
-          <v-progress-linear
-            v-model="calculatorData.progress"
-            color="secondary"
-            height="25"
-          >
-            <template v-slot:default="{ value }">
-              <strong>{{ Math.ceil(value) }}%</strong>
-            </template>
-          </v-progress-linear>
-
+          <ProgressBar :calculator-data="calculatorData" />
           <v-stepper-items>
-            <v-stepper-content step="1">
-              <component
-                :is="stepData.stepOne.component"
-                :user-choices="userChoices"
-                :step-data="stepData"
-                @field-changed="handleSelection"
-                @next-step="nextStep()"
-              ></component>
-            </v-stepper-content>
-
-            <v-stepper-content step="2">
-              <component
-                :is="stepData.stepTwo.component"
-                :user-choices="userChoices"
-                :step-data="stepData"
-                @field-changed="setTuitionRate"
-                @next-step="nextStep()"
-                @previous-step="previousStep()"
-              ></component>
-            </v-stepper-content>
-
-            <v-stepper-content step="3">
-              <component
-                :is="stepData.stepThree.component"
-                :user-choices="userChoices"
-                :step-data="stepData"
-                @next-step="nextStep()"
-                @previous-step="previousStep()"
-              ></component>
-            </v-stepper-content>
-
-            <v-stepper-content step="4">
-              <component
-                :is="stepData.stepFour.component"
-                :user-choices="userChoices"
-                :step-data="stepData"
-                @next-step="nextStep()"
-                @previous-step="previousStep()"
-              ></component>
-            </v-stepper-content>
-
-            <v-stepper-content step="5">
-              <component
-                :is="stepData.stepFive.component"
-                :user-choices="userChoices"
-                :step-data="stepData"
-                :calculator-data="calculatorData"
-                @reset="resetCalculator()"
+            <v-stepper-content
+              v-for="component in stepperComponentsData"
+              :key="component.name"
+              :step="component.step"
+              ><component
+                :is="component.name"
+                v-bind="component.props"
+                v-on="component.on"
               ></component>
             </v-stepper-content>
           </v-stepper-items>
         </v-stepper>
       </v-col>
       <v-col cols="6" md="4">
-        <v-container>
-          <v-row>
-            <v-col>
-              <h1>{{ calculatorData.estimatedTuition }}</h1>
-              <p>Estimated Tuition</p>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col>
-              <h1>{{ calculatorData.estimatedGradDate }}</h1>
-              <p>Estimated Graduation Date</p>
-            </v-col>
-          </v-row>
-        </v-container>
+        <Results :calculator-data="calculatorData" />
       </v-col>
     </v-row>
   </v-container>

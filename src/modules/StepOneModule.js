@@ -4,7 +4,7 @@ export default class StepOneModule {
       that.stepData.stepOne.fields[n].options.push(program);
     }
   }
-  
+
   multipleOptions(that, n, o) {
     that.setOptions(n, o);
     that.stepData.stepOne.fields[n].disabled = false;
@@ -26,7 +26,7 @@ export default class StepOneModule {
     Object.keys(options).length == 1
       ? that.oneOption(nextField, options)
       : that.multipleOptions(nextField, options);
-  } 
+  }
 
   clearSuccessiveFields(that, index) {
     console.log(index, that.previousIndex);
