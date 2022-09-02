@@ -24,10 +24,43 @@ export default class DataModule {
         workExperience: "",
       },
     };
-    that.fields = {
+    that.stepData = {
       stepOne: {
         valid: false,
         fieldRules: [(v) => !!v || "This field is required"],
+        fields: [
+          { 
+            _id: 0,
+            reference: "campus",
+            label: "Choose a WCU Campus",
+            options: ["California", "Texas", "Florida"],
+            isRequired: true,
+          },
+          {
+            _id: 1,
+            reference: "areaOfStudy",
+            label: "Choose Area of Study",
+            options: null,
+            disabled: true,
+            isRequired: true,
+          },
+          {
+            _id: 2,
+            reference: "degreeLevel",
+            label: "Choose Degree Level",
+            options: null,
+            disabled: true,
+            isRequired: true,
+          },
+          {
+            _id: 3,
+            reference: "program",
+            label: "Choose Program",
+            options: null,
+            disabled: true,
+            isRequired: true,
+          },
+        ],
         campuses: {
           options: ["California", "Texas", "Florida"],
           isRequired: true,

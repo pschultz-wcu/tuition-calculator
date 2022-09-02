@@ -1,19 +1,25 @@
 <script>
+import BackButton from "./form/BackButton.vue";
+import NextButton from "./form/NextButton.vue";
 import DataModule from "../modules/DataModule";
 export default {
   name: "TuitionCalculator",
+  components: {
+    BackButton,
+    NextButton,
+  },
   data: () => ({
     dataModule: null,
     stepperKey: 0,
     calculatorData: {},
     previousIndex: null,
     userChoices: {},
-    fields: {},
+    stepData: {},
     wcuProgramData: {},
   }),
   created() {
     this.dataModule = new DataModule();
-    this.setCalculator()
+    this.setCalculator();
   },
   methods: {
     setCalculator() {
@@ -23,54 +29,86 @@ export default {
       this.setCalculator();
       this.stepperKey += 1;
     },
-    setFields(nextField, options) {
-      for (const program of Object.keys(options)) {
-        this.fields.stepOne[nextField].options.push(program);
+    previousStep() {
+      (this.calculatorData.step -= 1), (this.calculatorData.progress -= 25);
+    },
+    nextStep() {
+      this.calculatorData.step == 4 ? this.calculateTuition() : null;
+      (this.calculatorData.step += 1), (this.calculatorData.progress += 25);
+    },
+    setOptions(n, o) {
+      for (const program of Object.keys(o)) {
+        this.stepData.stepOne.fields[n].options.push(program);
       }
-      this.fields.stepOne[nextField].disabled = false;
+    },
+    multipleOptions(n, o) {
+      this.setOptions(n, o);
+      this.stepData.stepOne.fields[n].disabled = false;      
+    },
+    oneOption(n, o) {
+      console.log("nextField = ", n);
+      console.log("options = ", Object.keys(o)[0]);
+      this.setOptions(n, o);
+      this.userChoices.stepOne[n] = Object.keys(o)[0];
+      this.stepData.stepOne.fields[n].disabled = false;
+      this.stepData.stepOne.fields[n + 1].disabled = false;
+      this.handleSelection(n);      
+    },
+    setFields(nextField, options) {
+      console.log(Object.keys(options).length == 1);
+      Object.keys(options).length == 1
+        ? this.oneOption(nextField, options)
+        : this.multipleOptions(nextField, options);      
     },
     clearSuccessiveFields(index) {
       console.log(index, this.previousIndex);
       let clearIndex = index + 1;
       while (clearIndex < 4) {
-        this.userChoices.stepOne[clearIndex] = "";        
+        console.log(clearIndex)
+        this.userChoices.stepOne[clearIndex] = "";
         clearIndex++;
       }
       this.stepperKey += 1;
     },
-    handleSelection(currentField, nextField, index) {
+    setStepOneUserChoices(index) {
+      let options;
+      switch (index) {
+        case 0:
+          options = this.wcuProgramData[this.userChoices.stepOne[0]];
+          break;
+        case 1:
+          options =
+            this.wcuProgramData[this.userChoices.stepOne[0]][
+              this.userChoices.stepOne[1]
+            ];
+          break;
+        case 2:
+          options =
+            this.wcuProgramData[this.userChoices.stepOne[0]][
+              this.userChoices.stepOne[1]
+            ][this.userChoices.stepOne[2]];
+          break;
+      }
+      return options;
+    },
+    handleSelection(index) {
       console.log(
-        currentField + " changed,",
-        nextField + " set,",
-        "index: " + index
+        "previous index: " + this.previousIndex, 
+        "index: " + index,         
       );
-      this.fields.stepOne[nextField].options = [];
+      this.stepData.stepOne.fields[index + 1].options = [];
       if (this.previousIndex !== null && index < this.previousIndex) {
         this.clearSuccessiveFields(index);
       }
-      let options;
-      if (index == 0) {
-        options = this.wcuProgramData[this.userChoices.stepOne[0]];
-      } else if (index == 1) {
-        options =
-          this.wcuProgramData[this.userChoices.stepOne[0]][
-            this.userChoices.stepOne[1]
-          ];
-      } else if (index == 2) {
-        options =
-          this.wcuProgramData[this.userChoices.stepOne[0]][
-            this.userChoices.stepOne[1]
-          ][this.userChoices.stepOne[2]];
-      }
+      const options = this.setStepOneUserChoices(index);
       console.log(options);
-      console.log(Object.keys(options).length == 1);
-      this.setFields(nextField, options);
-      this.previousIndex = index;
+      this.previousIndex = index
+      this.setFields(index + 1, options);      
     },
     setTuitionRate() {
       this.userChoices.stepTwo.tuition.rate =
-        this.fields.stepTwo.tuition.rates[
-          this.fields.stepTwo.tuition.options.indexOf(
+        this.stepData.stepTwo.tuition.rates[
+          this.stepData.stepTwo.tuition.options.indexOf(
             this.userChoices.stepTwo.tuition.option
           )
         ];
@@ -81,12 +119,6 @@ export default {
         this.userChoices.stepFour.transferCredits *
           this.userChoices.stepTwo.tuition.rate +
         this.calculatorData.fees;
-      console.log(
-        this.userChoices.stepTwo.tuition.rate * 120,
-        this.userChoices.stepFour.transferCredits,
-        this.userChoices.stepTwo.tuition.rate,
-        this.calculatorData.fees
-      );
       console.log(cost);
       this.calculatorData.estimatedTuition = `$${cost}`;
     },
@@ -117,44 +149,18 @@ export default {
             <v-stepper-content step="1">
               <p>Select a Program</p>
 
-              <v-form v-model="fields.stepOne.valid">
+              <v-form v-model="stepData.stepOne.valid">
                 <v-select
                   outlined
-                  label="Choose a WCU Campus"
-                  :items="fields.stepOne.campuses.options"
-                  @change="handleSelection('campus', 'areaOfStudy', 0)"
-                  v-model="userChoices.stepOne[0]"
-                  :required="fields.stepOne.campuses.isRequired"
-                  :rules="fields.stepOne.fieldRules"
-                ></v-select>
-                <v-select
-                  outlined
-                  label="Choose Area of Study"
-                  :disabled="fields.stepOne.areaOfStudy.disabled"
-                  :items="fields.stepOne.areaOfStudy.options"
-                  @change="handleSelection('areaOfStudy', 'degreeLevel', 1)"
-                  v-model="userChoices.stepOne[1]"
-                  :required="fields.stepOne.areaOfStudy.isRequired"
-                  :rules="fields.stepOne.fieldRules"
-                ></v-select>
-                <v-select
-                  outlined
-                  label="Choose Degree Level"
-                  :disabled="fields.stepOne.degreeLevel.disabled"
-                  :items="fields.stepOne.degreeLevel.options"
-                  @change="handleSelection('degreeLevel', 'program', 2)"
-                  v-model="userChoices.stepOne[2]"
-                  :required="fields.stepOne.degreeLevel.isRequired"
-                  :rules="fields.stepOne.fieldRules"
-                ></v-select>
-                <v-select
-                  outlined
-                  label="Choose Program"
-                  :disabled="fields.stepOne.program.disabled"
-                  :items="fields.stepOne.program.options"
-                  v-model="userChoices.stepOne[3]"
-                  :required="fields.stepOne.program.isRequired"
-                  :rules="fields.stepOne.fieldRules"
+                  v-for="field in stepData.stepOne.fields"
+                  :key="field.label"
+                  :label="field.label"
+                  :disabled="field.disabled"
+                  :items="field.options"
+                  @change="field._id !== 3 ? handleSelection(field._id) : null"
+                  v-model="userChoices.stepOne[field._id]"
+                  :required="field.isRequired"
+                  :rules="stepData.stepOne.fieldRules"
                 ></v-select>
               </v-form>
 
@@ -171,15 +177,7 @@ export default {
               </p>
 
               <div class="nav-btn-container d-flex align-center justify-end">
-                <v-btn
-                  color="primary"
-                  @click="
-                    (calculatorData.step = 2), (calculatorData.progress += 25)
-                  "
-                  :disabled="!fields.stepOne.valid"
-                >
-                  Continue
-                </v-btn>
+                <NextButton @clicked="nextStep()" :fields="stepData.stepOne" />
               </div>
             </v-stepper-content>
 
@@ -194,15 +192,15 @@ export default {
                 ways to save on tuition.
               </p>
 
-              <v-form v-model="fields.stepTwo.valid">
+              <v-form v-model="stepData.stepTwo.valid">
                 <v-select
-                  :items="fields.stepTwo.tuition.options"
+                  :items="stepData.stepTwo.tuition.options"
                   v-model="userChoices.stepTwo.tuition.option"
                   @change="setTuitionRate()"
                   outlined
                   label="Choose a Tuition Rate"
-                  :required="fields.stepTwo.tuition.isRequired"
-                  :rules="fields.stepTwo.fieldRules"
+                  :required="stepData.stepTwo.tuition.isRequired"
+                  :rules="stepData.stepTwo.fieldRules"
                 ></v-select>
               </v-form>
 
@@ -217,24 +215,8 @@ export default {
               <div
                 class="nav-btn-container d-flex align-center justify-space-between"
               >
-                <v-btn
-                  text
-                  @click="
-                    (calculatorData.step = 1), (calculatorData.progress -= 25)
-                  "
-                >
-                  Previous
-                </v-btn>
-
-                <v-btn
-                  color="primary"
-                  @click="
-                    (calculatorData.step = 3), (calculatorData.progress += 25)
-                  "
-                  :disabled="!fields.stepTwo.valid"
-                >
-                  Continue
-                </v-btn>
+                <BackButton @clicked="previousStep()" />
+                <NextButton @clicked="nextStep()" :fields="stepData.stepTwo" />
               </div>
             </v-stepper-content>
 
@@ -246,14 +228,14 @@ export default {
                 it’s most convenient for you. Select&nbsp;one below.
               </p>
 
-              <v-form v-model="fields.stepThree.valid">
+              <v-form v-model="stepData.stepThree.valid">
                 <p>Expected Start Date</p>
                 <v-radio-group
                   row
                   class="mx-8"
-                  :required="fields.stepThree.startDate.isRequired"
+                  :required="stepData.stepThree.startDate.isRequired"
                   v-model="userChoices.stepThree.startDate"
-                  :rules="fields.stepThree.fieldRules"
+                  :rules="stepData.stepThree.fieldRules"
                 >
                   <v-radio
                     label="September 21 2022"
@@ -281,9 +263,9 @@ export default {
                 <v-radio-group
                   row
                   class="mx-8"
-                  :required="fields.stepThree.courseLoad.isRequired"
+                  :required="stepData.stepThree.courseLoad.isRequired"
                   v-model="userChoices.stepThree.courseLoad"
-                  :rules="fields.stepThree.fieldRules"
+                  :rules="stepData.stepThree.fieldRules"
                 >
                   <v-radio label="1" value="1"></v-radio>
                   <v-radio label="2" value="2"></v-radio>
@@ -294,24 +276,11 @@ export default {
               <div
                 class="nav-btn-container d-flex align-center justify-space-between"
               >
-                <v-btn
-                  text
-                  @click="
-                    (calculatorData.step = 2), (calculatorData.progress -= 25)
-                  "
-                >
-                  Previous
-                </v-btn>
-
-                <v-btn
-                  color="primary"
-                  @click="
-                    (calculatorData.step = 4), (calculatorData.progress += 25)
-                  "
-                  :disabled="!fields.stepThree.valid"
-                >
-                  Continue
-                </v-btn>
+                <BackButton @clicked="previousStep()" />
+                <NextButton
+                  @clicked="nextStep()"
+                  :fields="stepData.stepThree"
+                />
               </div>
             </v-stepper-content>
 
@@ -340,13 +309,13 @@ export default {
               <p>
                 Do you plan on completing a credit-for-work-experience course?
               </p>
-              <v-form v-model="fields.stepFour.valid">
+              <v-form v-model="stepData.stepFour.valid">
                 <v-radio-group
                   row
                   class="mx-8"
-                  :required="fields.stepFour.workExperience.isRequired"
+                  :required="stepData.stepFour.workExperience.isRequired"
                   v-model="userChoices.stepFour.workExperience"
-                  :rules="fields.stepFour.fieldRules"
+                  :rules="stepData.stepFour.fieldRules"
                 >
                   <v-radio label="Yes" value="Yes"></v-radio>
                   <v-radio label="No" value="No"></v-radio>
@@ -356,26 +325,8 @@ export default {
               <div
                 class="nav-btn-container d-flex align-center justify-space-between"
               >
-                <v-btn
-                  text
-                  @click="
-                    (calculatorData.step = 3), (calculatorData.progress -= 25)
-                  "
-                >
-                  Previous
-                </v-btn>
-
-                <v-btn
-                  color="primary"
-                  @click="
-                    (calculatorData.step = 5),
-                      (calculatorData.progress += 25),
-                      calculateTuition()
-                  "
-                  :disabled="!fields.stepFour.valid"
-                >
-                  Continue
-                </v-btn>
+                <BackButton @clicked="previousStep()" />
+                <NextButton @clicked="nextStep()" :fields="stepData.stepFour" />
               </div>
             </v-stepper-content>
 
@@ -428,7 +379,7 @@ export default {
                   <tr>
                     <td class="text-left">Start Date</td>
                     <td class="text-right">
-                      {{ fields.stepThree.startDate.value }}
+                      {{ stepData.stepThree.startDate.value }}
                     </td>
                   </tr>
                   <tr>
@@ -454,7 +405,6 @@ export default {
                 class="nav-btn-container d-flex align-center justify-space-between"
               >
                 <v-btn text @click="resetCalculator"> Start Over </v-btn>
-
                 <v-btn color="primary"> Apply Now</v-btn>
               </div>
             </v-stepper-content>
