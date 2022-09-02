@@ -1,124 +1,42 @@
 <script>
+import DataModule from "../modules/DataModule";
 export default {
   name: "TuitionCalculator",
-
   data: () => ({
-    progress: 0,
-    e1: 1,
-    estimatedTuition: "$0",
-    estimatedGradDate: "TBD",
-    fees: 10000,
+    dataModule: null,
+    stepperKey: 0,
+    calculatorData: {},
     previousIndex: null,
-    userChoices: {
-      stepOne: ["", "", "", ""],
-      stepTwo: {
-        option: null,
-        rate: null,
-      },
-      stepThree: {
-        slider: 0,
-      },
-    },
-    stepOneFields: {
-      campuses: {
-        options: ["California", "Texas", "Florida"],
-      },
-      areaOfStudy: {
-        options: null,
-        disabled: true,
-      },
-      degreeLevel: {
-        options: null,
-        disabled: true,
-      },
-      program: {
-        options: null,
-        disabled: true,
-      },
-    },
-    wcuData: {
-      California: {
-        "Dental Hygiene": {
-          "Bachelor's": {
-            "Bachelor of Science in Dental Hygiene": {},
-          },
-        },
-        Nursing: {
-          "Bachelor's": {
-            "LVN to Bachelor of Science in Nursing": {},
-            "Bachelor of Science in Nursing": {},
-          },
-        },
-        "Occupational Therapy": {
-          Doctorate: {
-            "Occupational Therapy Doctorate": {},
-          },
-          "Master's": {
-            "Master of Science in Occupational Therapy": {},
-          },
-        },
-        Pharmacy: {
-          Doctorate: {
-            "Doctor of Pharmacy": {},
-          },
-        },
-        "Physical Therapy": {
-          Doctorate: {
-            "Doctor of Physical Therapy": {},
-          },
-        },
-      },
-      Florida: {
-        Nursing: {
-          Associate: {
-            "Associate Degree in Nursing": {},
-          },
-          "Bachelor's": {
-            "Bachelor of Science in Nursing": {},
-            "LPN to Bachelor of Science in Nursing": {},
-          },
-        },
-      },
-      Texas: {
-        Nursing: {
-          "Bachelor's": {
-            "Bachelor of Science in Nursing": {},
-            "LPN to Bachelor of Science in Nursing": {},
-          },
-        },
-        "Occupational Therapy": {
-          "Master's": {
-            "Master of Science in Occupational Therapy": {},
-          },
-        },
-        "Physician Assistant": {
-          "Master's": {
-            "Master of Physician Assistant": {},
-          },
-        },
-      },
-    },
-    stepTwoFields: {
-      tuition: {
-        options: ["Standard Rate", "Active Duty", "Veteran"],
-        rates: [460, 391, 250],
-      },
-    },
+    userChoices: {},
+    fields: {},
+    wcuProgramData: {},
   }),
+  created() {
+    this.dataModule = new DataModule();
+    this.setCalculator()
+  },
   methods: {
+    setCalculator() {
+      this.dataModule.setData(this);
+    },
+    resetCalculator() {
+      this.setCalculator();
+      this.stepperKey += 1;
+    },
     setFields(nextField, options) {
       for (const program of Object.keys(options)) {
-        this.stepOneFields[nextField].options.push(program);
+        this.fields.stepOne[nextField].options.push(program);
       }
-      this.stepOneFields[nextField].disabled = false;
+      this.fields.stepOne[nextField].disabled = false;
     },
     clearSuccessiveFields(index) {
       console.log(index, this.previousIndex);
       let clearIndex = index + 1;
       while (clearIndex < 4) {
-        this.userChoices.stepOne[clearIndex] = "";
+        this.userChoices.stepOne[clearIndex] = "";        
         clearIndex++;
       }
+      this.stepperKey += 1;
     },
     handleSelection(currentField, nextField, index) {
       console.log(
@@ -126,43 +44,51 @@ export default {
         nextField + " set,",
         "index: " + index
       );
-      this.stepOneFields[nextField].options = [];
+      this.fields.stepOne[nextField].options = [];
       if (this.previousIndex !== null && index < this.previousIndex) {
         this.clearSuccessiveFields(index);
       }
       let options;
       if (index == 0) {
-        options = this.wcuData[this.userChoices.stepOne[0]];
+        options = this.wcuProgramData[this.userChoices.stepOne[0]];
       } else if (index == 1) {
         options =
-          this.wcuData[this.userChoices.stepOne[0]][
+          this.wcuProgramData[this.userChoices.stepOne[0]][
             this.userChoices.stepOne[1]
           ];
       } else if (index == 2) {
         options =
-          this.wcuData[this.userChoices.stepOne[0]][
+          this.wcuProgramData[this.userChoices.stepOne[0]][
             this.userChoices.stepOne[1]
           ][this.userChoices.stepOne[2]];
       }
       console.log(options);
+      console.log(Object.keys(options).length == 1);
       this.setFields(nextField, options);
       this.previousIndex = index;
     },
     setTuitionRate() {
-      this.userChoices.stepTwo.rate =
-        this.stepTwoFields.tuition.rates[
-          this.stepTwoFields.tuition.options.indexOf(
-            this.userChoices.stepTwo.option
+      this.userChoices.stepTwo.tuition.rate =
+        this.fields.stepTwo.tuition.rates[
+          this.fields.stepTwo.tuition.options.indexOf(
+            this.userChoices.stepTwo.tuition.option
           )
         ];
     },
     calculateTuition() {
       let cost =
-        this.userChoices.stepTwo.rate * 120 
-        - this.userChoices.stepThree.slider * this.userChoices.stepTwo.rate
-        + this.fees; 
-      console.log(cost)
-      this.estimatedTuition = `$${cost}`
+        this.userChoices.stepTwo.tuition.rate * 120 -
+        this.userChoices.stepFour.transferCredits *
+          this.userChoices.stepTwo.tuition.rate +
+        this.calculatorData.fees;
+      console.log(
+        this.userChoices.stepTwo.tuition.rate * 120,
+        this.userChoices.stepFour.transferCredits,
+        this.userChoices.stepTwo.tuition.rate,
+        this.calculatorData.fees
+      );
+      console.log(cost);
+      this.calculatorData.estimatedTuition = `$${cost}`;
     },
   },
 };
@@ -172,8 +98,16 @@ export default {
   <v-container class="mt-8" style="border: 1px solid black">
     <v-row no-gutters>
       <v-col cols="12" sm="6" md="8">
-        <v-stepper v-model="e1" elevation="0">
-          <v-progress-linear v-model="progress" color="secondary" height="25">
+        <v-stepper
+          v-model="calculatorData.step"
+          elevation="0"
+          :key="stepperKey"
+        >
+          <v-progress-linear
+            v-model="calculatorData.progress"
+            color="secondary"
+            height="25"
+          >
             <template v-slot:default="{ value }">
               <strong>{{ Math.ceil(value) }}%</strong>
             </template>
@@ -183,39 +117,67 @@ export default {
             <v-stepper-content step="1">
               <p>Select a Program</p>
 
-              <v-select
-                outlined
-                label="Choose a WCU Campus"
-                :items="stepOneFields.campuses.options"
-                @change="handleSelection('campus', 'areaOfStudy', 0)"
-                v-model="userChoices.stepOne[0]"
-              ></v-select>
-              <v-select
-                outlined
-                label="Choose Area of Study"
-                :disabled="stepOneFields.areaOfStudy.disabled"
-                :items="stepOneFields.areaOfStudy.options"
-                @change="handleSelection('areaOfStudy', 'degreeLevel', 1)"
-                v-model="userChoices.stepOne[1]"
-              ></v-select>
-              <v-select
-                outlined
-                label="Choose Degree Level"
-                :disabled="stepOneFields.degreeLevel.disabled"
-                :items="stepOneFields.degreeLevel.options"
-                @change="handleSelection('degreeLevel', 'program', 2)"
-                v-model="userChoices.stepOne[2]"
-              ></v-select>
-              <v-select
-                outlined
-                label="Choose Program"
-                :disabled="stepOneFields.program.disabled"
-                :items="stepOneFields.program.options"
-                v-model="userChoices.stepOne[3]"
-              ></v-select>
+              <v-form v-model="fields.stepOne.valid">
+                <v-select
+                  outlined
+                  label="Choose a WCU Campus"
+                  :items="fields.stepOne.campuses.options"
+                  @change="handleSelection('campus', 'areaOfStudy', 0)"
+                  v-model="userChoices.stepOne[0]"
+                  :required="fields.stepOne.campuses.isRequired"
+                  :rules="fields.stepOne.fieldRules"
+                ></v-select>
+                <v-select
+                  outlined
+                  label="Choose Area of Study"
+                  :disabled="fields.stepOne.areaOfStudy.disabled"
+                  :items="fields.stepOne.areaOfStudy.options"
+                  @change="handleSelection('areaOfStudy', 'degreeLevel', 1)"
+                  v-model="userChoices.stepOne[1]"
+                  :required="fields.stepOne.areaOfStudy.isRequired"
+                  :rules="fields.stepOne.fieldRules"
+                ></v-select>
+                <v-select
+                  outlined
+                  label="Choose Degree Level"
+                  :disabled="fields.stepOne.degreeLevel.disabled"
+                  :items="fields.stepOne.degreeLevel.options"
+                  @change="handleSelection('degreeLevel', 'program', 2)"
+                  v-model="userChoices.stepOne[2]"
+                  :required="fields.stepOne.degreeLevel.isRequired"
+                  :rules="fields.stepOne.fieldRules"
+                ></v-select>
+                <v-select
+                  outlined
+                  label="Choose Program"
+                  :disabled="fields.stepOne.program.disabled"
+                  :items="fields.stepOne.program.options"
+                  v-model="userChoices.stepOne[3]"
+                  :required="fields.stepOne.program.isRequired"
+                  :rules="fields.stepOne.fieldRules"
+                ></v-select>
+              </v-form>
+
+              <p class="legal-disclaimer">
+                This tool is provided for informational purposes only and does
+                not represent a guarantee of the time required to complete a
+                program or the total program cost. Completion time is based on
+                the assumptions that you will enroll in time to begin classes on
+                the start date selected, will remain enrolled for each
+                consecutive term, and will maintain satisfactory academic
+                standing in each term to progress toward completion of your
+                program. Tuition estimates do not include general program
+                specific fees.
+              </p>
 
               <div class="nav-btn-container d-flex align-center justify-end">
-                <v-btn color="primary" @click="(e1 = 2), (progress += 25)">
+                <v-btn
+                  color="primary"
+                  @click="
+                    (calculatorData.step = 2), (calculatorData.progress += 25)
+                  "
+                  :disabled="!fields.stepOne.valid"
+                >
                   Continue
                 </v-btn>
               </div>
@@ -232,22 +194,45 @@ export default {
                 ways to save on tuition.
               </p>
 
-              <v-select
-                :items="stepTwoFields.tuition.options"
-                v-model="userChoices.stepTwo.option"
-                @change="setTuitionRate()"
-                outlined
-                label="Choose a Tuition Rate"
-              ></v-select>
+              <v-form v-model="fields.stepTwo.valid">
+                <v-select
+                  :items="fields.stepTwo.tuition.options"
+                  v-model="userChoices.stepTwo.tuition.option"
+                  @change="setTuitionRate()"
+                  outlined
+                  label="Choose a Tuition Rate"
+                  :required="fields.stepTwo.tuition.isRequired"
+                  :rules="fields.stepTwo.fieldRules"
+                ></v-select>
+              </v-form>
+
+              <p class="legal-disclaimer">
+                Tuition estimates will vary based on program of interest,
+                tuition reduction selected, rate at which you complete the
+                program, availability of eligible prior learning credits,
+                prerequisites required, and repeated courses. Tuition estimates
+                do not include general or program-specific fees.
+              </p>
 
               <div
                 class="nav-btn-container d-flex align-center justify-space-between"
               >
-                <v-btn text @click="(e1 = 1), (progress -= 25)">
+                <v-btn
+                  text
+                  @click="
+                    (calculatorData.step = 1), (calculatorData.progress -= 25)
+                  "
+                >
                   Previous
                 </v-btn>
 
-                <v-btn color="primary" @click="(e1 = 3), (progress += 25)">
+                <v-btn
+                  color="primary"
+                  @click="
+                    (calculatorData.step = 3), (calculatorData.progress += 25)
+                  "
+                  :disabled="!fields.stepTwo.valid"
+                >
                   Continue
                 </v-btn>
               </div>
@@ -261,40 +246,70 @@ export default {
                 it’s most convenient for you. Select&nbsp;one below.
               </p>
 
-              <p>Expected Start Date</p>
-              <v-radio-group row>
-                <v-radio
-                  label="September 21 2022"
-                  value="start-date-1"
-                ></v-radio>
-                <v-radio label="October 19 2022" value="start-date-2"></v-radio>
-                <v-radio label="December 7 2022" value="start-date-3"></v-radio>
-                <v-radio label="January 4 2023" value="start-date-4"></v-radio>
-              </v-radio-group>
+              <v-form v-model="fields.stepThree.valid">
+                <p>Expected Start Date</p>
+                <v-radio-group
+                  row
+                  class="mx-8"
+                  :required="fields.stepThree.startDate.isRequired"
+                  v-model="userChoices.stepThree.startDate"
+                  :rules="fields.stepThree.fieldRules"
+                >
+                  <v-radio
+                    label="September 21 2022"
+                    value="September 21 2022"
+                  ></v-radio>
+                  <v-radio
+                    label="October 19 2022"
+                    value="October 19 2022"
+                  ></v-radio>
+                  <v-radio
+                    label="December 7 2022"
+                    value="December 7 2022"
+                  ></v-radio>
+                </v-radio-group>
 
-              <p>Courses Per Term</p>
+                <p>Courses Per Term</p>
 
-              <p>
-                Full-time undergraduate students typically take&nbsp;2 courses
-                per term. Certain programs may require you to meet academic
-                requirements or receive prior approval to take more than&nbsp;2
-                courses per term.
-              </p>
+                <p>
+                  Full-time undergraduate students typically take&nbsp;2 courses
+                  per term. Certain programs may require you to meet academic
+                  requirements or receive prior approval to take more
+                  than&nbsp;2 courses per term.
+                </p>
 
-              <v-radio-group row>
-                <v-radio label="1" value="radio-1"></v-radio>
-                <v-radio label="2" value="radio-2"></v-radio>
-                <v-radio label="3" value="radio-3"></v-radio>
-              </v-radio-group>
+                <v-radio-group
+                  row
+                  class="mx-8"
+                  :required="fields.stepThree.courseLoad.isRequired"
+                  v-model="userChoices.stepThree.courseLoad"
+                  :rules="fields.stepThree.fieldRules"
+                >
+                  <v-radio label="1" value="1"></v-radio>
+                  <v-radio label="2" value="2"></v-radio>
+                  <v-radio label="3" value="3"></v-radio>
+                </v-radio-group>
+              </v-form>
 
               <div
                 class="nav-btn-container d-flex align-center justify-space-between"
               >
-                <v-btn text @click="(e1 = 2), (progress -= 25)">
+                <v-btn
+                  text
+                  @click="
+                    (calculatorData.step = 2), (calculatorData.progress -= 25)
+                  "
+                >
                   Previous
                 </v-btn>
 
-                <v-btn color="primary" @click="(e1 = 4), (progress += 25)">
+                <v-btn
+                  color="primary"
+                  @click="
+                    (calculatorData.step = 4), (calculatorData.progress += 25)
+                  "
+                  :disabled="!fields.stepThree.valid"
+                >
                   Continue
                 </v-btn>
               </div>
@@ -313,7 +328,7 @@ export default {
               <p>Transfer Credits</p>
 
               <v-slider
-                v-model="userChoices.stepThree.slider"
+                v-model="userChoices.stepFour.transferCredits"
                 class="align-center mx-8 mt-16"
                 :max="97"
                 :min="0"
@@ -325,22 +340,39 @@ export default {
               <p>
                 Do you plan on completing a credit-for-work-experience course?
               </p>
-
-              <v-radio-group row>
-                <v-radio label="Yes" value="Yes"></v-radio>
-                <v-radio label="No" value="No"></v-radio>
-              </v-radio-group>
+              <v-form v-model="fields.stepFour.valid">
+                <v-radio-group
+                  row
+                  class="mx-8"
+                  :required="fields.stepFour.workExperience.isRequired"
+                  v-model="userChoices.stepFour.workExperience"
+                  :rules="fields.stepFour.fieldRules"
+                >
+                  <v-radio label="Yes" value="Yes"></v-radio>
+                  <v-radio label="No" value="No"></v-radio>
+                </v-radio-group>
+              </v-form>
 
               <div
                 class="nav-btn-container d-flex align-center justify-space-between"
               >
-                <v-btn text @click="(e1 = 3), (progress -= 25)">
+                <v-btn
+                  text
+                  @click="
+                    (calculatorData.step = 3), (calculatorData.progress -= 25)
+                  "
+                >
                   Previous
                 </v-btn>
 
                 <v-btn
                   color="primary"
-                  @click="(e1 = 5), (progress += 25), calculateTuition()"
+                  @click="
+                    (calculatorData.step = 5),
+                      (calculatorData.progress += 25),
+                      calculateTuition()
+                  "
+                  :disabled="!fields.stepFour.valid"
                 >
                   Continue
                 </v-btn>
@@ -355,7 +387,7 @@ export default {
                   <tr>
                     <th class="text-left">Program</th>
                     <th class="text-right">
-                      Bachelor's of Science in Communication
+                      {{ userChoices.stepOne[3] }}
                     </th>
                   </tr>
                 </thead>
@@ -366,21 +398,27 @@ export default {
                   </tr>
                   <tr>
                     <td class="text-left">Tuition Rate</td>
-                    <td class="text-right">{{ userChoices.stepTwo.option }} - ${{ userChoices.stepTwo.rate }}/credit</td>
+                    <td class="text-right">
+                      {{ userChoices.stepTwo.tuition.option }} - ${{
+                        userChoices.stepTwo.tuition.rate
+                      }}/credit
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-left">Estimated Transfer Credits</td>
                     <td class="text-right">
-                      {{ userChoices.stepThree.slider }}
+                      {{ userChoices.stepFour.transferCredits }}
                     </td>
                   </tr>
                   <tr>
                     <td class="text-left">Supplies & Fees</td>
-                    <td class="text-right">${{ fees }}</td>
+                    <td class="text-right">${{ calculatorData.fees }}</td>
                   </tr>
                   <tr>
                     <td class="text-left">Estimated Tuition Cost</td>
-                    <td class="text-right">{{ estimatedTuition }}</td>
+                    <td class="text-right">
+                      {{ calculatorData.estimatedTuition }}
+                    </td>
                   </tr>
                 </tbody>
               </v-simple-table>
@@ -389,7 +427,9 @@ export default {
                 <tbody>
                   <tr>
                     <td class="text-left">Start Date</td>
-                    <td class="text-right">October 19th, 2022</td>
+                    <td class="text-right">
+                      {{ fields.stepThree.startDate.value }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-left">Course Length</td>
@@ -413,11 +453,9 @@ export default {
               <div
                 class="nav-btn-container d-flex align-center justify-space-between"
               >
-                <v-btn text @click="(e1 = 4), (progress -= 25)">
-                  Previous
-                </v-btn>
+                <v-btn text @click="resetCalculator"> Start Over </v-btn>
 
-                <v-btn color="primary"> Apply </v-btn>
+                <v-btn color="primary"> Apply Now</v-btn>
               </div>
             </v-stepper-content>
           </v-stepper-items>
@@ -427,13 +465,13 @@ export default {
         <v-container>
           <v-row>
             <v-col>
-              <h1>{{ estimatedTuition }}</h1>
+              <h1>{{ calculatorData.estimatedTuition }}</h1>
               <p>Estimated Tuition</p>
             </v-col>
           </v-row>
           <v-row>
             <v-col>
-              <h1>{{ estimatedGradDate }}</h1>
+              <h1>{{ calculatorData.estimatedGradDate }}</h1>
               <p>Estimated Graduation Date</p>
             </v-col>
           </v-row>
@@ -442,3 +480,8 @@ export default {
     </v-row>
   </v-container>
 </template>
+<style scoped>
+.legal-disclaimer {
+  font-size: 12px;
+}
+</style>
