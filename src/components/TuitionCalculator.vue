@@ -28,22 +28,30 @@ export default {
     this.dataModule = new DataModule();
     this.calculationModule = new CalculationModule();
     this.stepOneModule = new StepOneModule();
-    this.setCalculator();
+    this.dataModule.setData(this);
     this.dataModule.setStepperComponentsData(this);
   },
   methods: {
-    setCalculator() {
-      this.dataModule.setData(this);
-    },
     resetCalculator() {
-      this.setCalculator();
       this.stepperKey += 1;
+      this.dataModule.setData(this);
+      this.dataModule.setStepperComponentsData(this);
     },
     previousStep() {
       (this.calculatorData.step -= 1), (this.calculatorData.progress -= 25);
     },
     nextStep() {
-      this.calculatorData.step == 4 ? this.calculateTuition() : null;
+      switch (this.calculatorData.step) {
+        case 1:          
+          this.userChoices.programData =
+            this.wcuProgramData[this.userChoices.stepOne[0]][
+              this.userChoices.stepOne[1]
+            ][this.userChoices.stepOne[2]][this.userChoices.stepOne[3]];
+          break;
+        case 4:
+          this.calculateTuition();
+          break;
+      }
       (this.calculatorData.step += 1), (this.calculatorData.progress += 25);
     },
     setOptions(n, o) {
@@ -91,7 +99,7 @@ export default {
           <v-stepper-items>
             <v-stepper-content
               v-for="component in stepperComponentsData"
-              :key="component.name"
+              :key="`${component.name}-${stepperKey}`"
               :step="component.step"
               ><component
                 :is="component.name"

@@ -44,12 +44,10 @@ export default {
         <v-radio label="December 7 2022" value="December 7 2022"></v-radio>
       </v-radio-group>
 
-      <p>Courses Per Term</p>
+      <p>Courses Per Semester</p>
 
       <p>
-        Full-time undergraduate students typically take&nbsp;2 courses per term.
-        Certain programs may require you to meet academic requirements or
-        receive prior approval to take more than&nbsp;2 courses per term.
+        Full-time undergraduate students typically take&nbsp;2 - 3 courses per semester.
       </p>
 
       <v-radio-group
@@ -59,9 +57,9 @@ export default {
         v-model="userChoices.stepThree.courseLoad"
         :rules="stepData.stepThree.fieldRules"
       >
-        <v-radio label="1" value="1"></v-radio>
-        <v-radio label="2" value="2"></v-radio>
-        <v-radio label="3" value="3"></v-radio>
+        <v-radio label="1" value="6"></v-radio>
+        <v-radio label="2" value="12"></v-radio>
+        <v-radio label="3" value="18"></v-radio>
       </v-radio-group>
     </v-form>
 

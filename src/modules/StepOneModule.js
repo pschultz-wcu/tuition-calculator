@@ -1,5 +1,5 @@
 export default class StepOneModule {
-  setOptions(that, n, o) {
+  setOptions(that, n, o) { 
     for (const program of Object.keys(o)) {
       that.stepData.stepOne.fields[n].options.push(program);
     }
@@ -11,8 +11,8 @@ export default class StepOneModule {
   }
 
   oneOption(that, n, o) {
-    console.log("nextField = ", n);
-    console.log("options = ", Object.keys(o)[0]);
+    // console.log("nextField = ", n);
+    // console.log("options = ", Object.keys(o)[0]);
     that.setOptions(n, o);
 
     that.userChoices.stepOne[n] = Object.keys(o)[0];
@@ -22,17 +22,17 @@ export default class StepOneModule {
   }
 
   setFields(that, nextField, options) {
-    console.log(Object.keys(options).length == 1);
+    // console.log(Object.keys(options).length == 1);
     Object.keys(options).length == 1
       ? that.oneOption(nextField, options)
       : that.multipleOptions(nextField, options);
   }
 
   clearSuccessiveFields(that, index) {
-    console.log(index, that.previousIndex);
+    // console.log(index, that.previousIndex);
     let clearIndex = index + 1;
     while (clearIndex < 4) {
-      console.log(clearIndex);
+      // console.log(clearIndex);
       that.userChoices.stepOne[clearIndex] = "";
       clearIndex++;
     }
@@ -62,13 +62,14 @@ export default class StepOneModule {
   }
 
   handleSelection(that, index) {
-    console.log("previous index: " + that.previousIndex, "index: " + index);
+    // console.log("previous index: " + that.previousIndex, "index: " + index);
     that.stepData.stepOne.fields[index + 1].options = [];
     if (that.previousIndex !== null && index < that.previousIndex) {
       that.clearSuccessiveFields(index);
+      that.stepData.stepOne.valid = false;
     }
     const options = that.setStepOneUserChoices(index);
-    console.log(options);
+    // console.log("user choices set = ", options );
     that.previousIndex = index;
     that.setFields(index + 1, options);
   }

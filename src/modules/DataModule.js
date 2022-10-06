@@ -1,5 +1,5 @@
 export default class DataModule {
-  setData(that) {
+  setData(that) {    
     that.calculatorData = {
       progress: 0,
       step: 1,
@@ -9,6 +9,7 @@ export default class DataModule {
     };
     that.userChoices = {
       stepOne: ["", "", "", ""],
+      programData: null,
       stepTwo: {
         tuition: {
           option: null,
@@ -94,60 +95,116 @@ export default class DataModule {
       California: {
         "Dental Hygiene": {
           "Bachelor's": {
-            "Bachelor of Science in Dental Hygiene": {},
+            "Bachelor of Science in Dental Hygiene": {
+              total_credits: 124,
+              program_length: 7,
+              term_type: "semesters",
+            },
           },
         },
         Nursing: {
           "Bachelor's": {
-            "LVN to Bachelor of Science in Nursing": {},
-            "Bachelor of Science in Nursing": {},
+            "LVN to Bachelor of Science in Nursing": {
+              total_credits: 120,
+              program_length: 7,
+              term_type: "semesters",
+            },
+            "Bachelor of Science in Nursing": {
+              total_credits: 120,
+              program_length: 8,
+              term_type: "semesters",
+            },
           },
         },
         "Occupational Therapy": {
           Doctorate: {
-            "Occupational Therapy Doctorate": {},
+            "Occupational Therapy Doctorate": {
+              total_credits: 120,
+              program_length: 8,
+              term_type: "trimesters",
+            },
           },
           "Master's": {
-            "Master of Science in Occupational Therapy": {},
+            "Master of Science in Occupational Therapy": {
+              total_credits: 96,
+              program_length: 6,
+              term_type: "trimesters",
+            },
           },
         },
         Pharmacy: {
           Doctorate: {
-            "Doctor of Pharmacy": {},
+            "Doctor of Pharmacy": {
+              total_credits: 144,
+              program_length: 9,
+              term_type: "trimesters",
+            },
           },
         },
         "Physical Therapy": {
           Doctorate: {
-            "Doctor of Physical Therapy": {},
+            "Doctor of Physical Therapy": {
+              total_credits: 133,
+              program_length: 9,
+              term_type: "trimesters",
+            },
           },
         },
       },
       Florida: {
         Nursing: {
           Associate: {
-            "Associate Degree in Nursing": {},
+            "Associate Degree in Nursing": {
+              total_credits: 67,
+              program_length: 4,
+              term_type: "semesters",
+            },
           },
           "Bachelor's": {
-            "Bachelor of Science in Nursing": {},
-            "LPN to Bachelor of Science in Nursing": {},
+            "Bachelor of Science in Nursing": {
+              total_credits: 120,
+              program_length: 8,
+              term_type: "semesters",
+            },
+            "LPN to Bachelor of Science in Nursing": {
+              total_credits: 120,
+              program_length: 7,
+              term_type: "semesters",
+            },
           },
         },
       },
       Texas: {
         Nursing: {
           "Bachelor's": {
-            "Bachelor of Science in Nursing": {},
-            "LPN to Bachelor of Science in Nursing": {},
+            "Bachelor of Science in Nursing": {
+              total_credits: 120,
+              program_length: 8,
+              term_type: "semesters",
+            },
+            "LVN to Bachelor of Science in Nursing": {
+              total_credits: 120,
+              program_length: 7,
+              term_type: "semesters",
+            },
           },
         },
         "Occupational Therapy": {
           "Master's": {
-            "Master of Science in Occupational Therapy": {},
+            "Master of Science in Occupational Therapy": {
+              total_credits: 90,
+              program_length: 6,
+              term_type: "trimesters",
+            },
           },
         },
         "Physician Assistant": {
           "Master's": {
-            "Master of Physician Assistant": {},
+            "Master of Physician Assistant": {
+              total_credits: 117,
+              program_length: 6,
+              term_type: "trimesters",
+            },
           },
         },
       },
@@ -234,7 +291,7 @@ export default class DataModule {
           calculatorData: that.calculatorData,
         },
         on: {
-          reset: () => {
+          "reset": () => {
             that.resetCalculator();
           },
         },

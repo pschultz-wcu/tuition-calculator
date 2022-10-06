@@ -28,8 +28,8 @@ export default {
       </thead>
       <tbody>
         <tr>
-          <td class="text-left">Total Quarter Credits</td>
-          <td class="text-right">120</td>
+          <td class="text-left">Total Credits</td>
+          <td class="text-right">{{ userChoices.programData.total_credits }}</td>
         </tr>
         <tr>
           <td class="text-left">Tuition Rate</td>
@@ -63,12 +63,8 @@ export default {
         <tr>
           <td class="text-left">Start Date</td>
           <td class="text-right">
-            {{ stepData.stepThree.startDate.value }}
+            {{ userChoices.stepThree.startDate }}
           </td>
-        </tr>
-        <tr>
-          <td class="text-left">Course Length</td>
-          <td class="text-right">10</td>
         </tr>
         <tr>
           <td class="text-left">Courses per Term</td>
@@ -76,10 +72,10 @@ export default {
         </tr>
         <tr>
           <td class="text-left">Terms to Graduate</td>
-          <td class="text-right">18</td>
+          <td class="text-right">{{ Math.ceil(userChoices.programData.total_credits / parseInt(userChoices.stepThree.courseLoad)) }}</td>
         </tr>
         <tr>
-          <td class="text-left">Estimate Graduation Date</td>
+          <td class="text-left">Estimated Graduation</td>
           <td class="text-right">Spring 2026</td>
         </tr>
       </tbody>
